@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiSoft — Cloud Logistics System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:14px;color:#222;background:#f0f4f8;min-height:100vh}
+.topbar{background:#185FA5;padding:0 0 0 16px;display:flex;align-items:stretch;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.topbar .brand{color:#fff;font-size:15px;font-weight:bold;padding:13px 20px 13px 0;border-right:1px solid rgba(255,255,255,0.2);margin-right:8px;white-space:nowrap}
+.nb{padding:13px 15px;font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer;border:none;background:transparent;font-family:Arial,sans-serif;border-bottom:3px solid transparent;white-space:nowrap}
+.nb:hover{color:#fff;background:rgba(255,255,255,0.1)}
+.nb.active{color:#fff;border-bottom:3px solid #fff;background:rgba(255,255,255,0.15);font-weight:bold}
+.db-status{margin-left:auto;display:flex;align-items:center;padding:0 14px;gap:7px;font-size:11px;color:rgba(255,255,255,0.8)}
+.db-dot{width:9px;height:9px;border-radius:50%;background:#aaa;flex-shrink:0;transition:background 0.3s}
+.db-dot.ok{background:#4ade80}.db-dot.err{background:#f87171}.db-dot.spin{background:#fbbf24;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.content{padding:16px;max-width:1200px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+.card{background:#fff;border:1px solid #d4e2ef;border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.ctitle{font-size:15px;font-weight:bold;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e0eaf5;color:#0C447C;display:flex;justify-content:space-between;align-items:center}
+.slabel{font-size:11px;font-weight:bold;color:#185FA5;text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 8px;padding:6px 10px;background:#E6F1FB;border-radius:5px;border-left:3px solid #185FA5}
+.fr{display:grid;gap:10px;margin-bottom:10px}
+.fr2{grid-template-columns:1fr 1fr}.fr3{grid-template-columns:1fr 1fr 1fr}.fr4{grid-template-columns:1fr 1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;color:#185FA5;font-weight:bold;text-transform:uppercase;letter-spacing:0.4px}
+input,select{padding:8px 10px;border:1px solid #b5d4f4;border-radius:7px;font-size:13px;background:#fff;color:#222;font-family:Arial,sans-serif;width:100%}
+input:focus,select:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 3px #e6f1fb}
+input[readonly]{background:#f0f4f8;color:#0C447C;cursor:default;font-weight:bold}
+.btn{padding:8px 18px;border-radius:7px;border:1px solid #b5d4f4;background:#fff;cursor:pointer;font-size:13px;font-family:Arial,sans-serif;color:#185FA5;font-weight:bold}
+.btn:hover{background:#E6F1FB}
+.btn-blue{background:#185FA5;color:#fff;border-color:#185FA5}.btn-blue:hover{background:#0C447C}
+.btn-green{background:#1D9E75;color:#fff;border-color:#1D9E75}.btn-green:hover{background:#0F6E56}
+.btn-red{background:#E24B4A;color:#fff;border-color:#E24B4A}.btn-red:hover{background:#A32D2D}
+.btn-sm{padding:4px 11px;font-size:11px}
+.btn-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.metric{background:#fff;border:1px solid #d4e2ef;border-radius:10px;padding:14px;text-align:center}
+.metric .num{font-size:24px;font-weight:bold;color:#185FA5}
+.metric .lbl{font-size:11px;color:#185FA5;margin-top:3px;opacity:0.75}
+.cs{background:#f0f4f8;border-radius:8px;padding:14px 16px;margin-top:14px;border:1px solid #d4e2ef}
+.cs-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#444}
+.cs-row.sub{color:#555}.cs-row.div{border-top:1px solid #b5d4f4;margin-top:8px;padding-top:10px}
+.cs-row.tot{font-weight:bold;font-size:16px;border-top:2px solid #185FA5;margin-top:8px;padding-top:10px;color:#0C447C}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 10px;font-weight:bold;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;color:#0C447C;background:#E6F1FB;border-bottom:1px solid #b5d4f4}
+td{padding:8px 10px;border-bottom:1px solid #eaf0f7;vertical-align:middle;color:#222}
+tr:hover td{background:#f5f9fd}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+.bb{background:#E6F1FB;color:#0C447C}.bg{background:#EAF3DE;color:#27500A}.ba{background:#FAEEDA;color:#633806}.bgr{background:#f0f4f8;color:#444}
+.empty{text-align:center;padding:28px;color:#888;font-size:13px}
+.tbl-wrap{overflow-x:auto}
+.cb-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #eaf0f7;cursor:pointer;font-size:13px}
+.cb-row:hover{background:#f5f9fd}
+.cb-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:#185FA5}
+.tl{list-style:none;padding:0;margin-top:14px;position:relative}
+.tl::before{content:'';position:absolute;left:14px;top:0;bottom:0;width:2px;background:#b5d4f4}
+.tl li{padding:7px 0 7px 38px;position:relative}
+.tl li .dot{position:absolute;left:8px;top:11px;width:14px;height:14px;border-radius:50%;border:2px solid #b5d4f4;background:#fff}
+.tl li.done .dot{background:#1D9E75;border-color:#1D9E75}
+.tl li.cur .dot{background:#185FA5;border-color:#185FA5}
+.tl-l{font-size:13px;font-weight:bold;color:#0C447C}
+.tl-s{font-size:12px;color:#666;margin-top:2px}
+.tw{max-width:480px;margin:32px auto}
+.tab-bar{display:flex;gap:3px;margin-bottom:16px;background:#E6F1FB;border-radius:9px;padding:4px;flex-wrap:wrap}
+.tab-btn{flex:1;padding:8px 6px;font-size:12px;border:none;background:transparent;cursor:pointer;border-radius:6px;color:#185FA5;font-family:Arial,sans-serif;font-weight:bold;white-space:nowrap}
+.tab-btn.active{background:#185FA5;color:#fff}
+.sub-page{display:none}.sub-page.active{display:block}
+.rpt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.rpt-stat{background:#fff;border:1px solid #d4e2ef;border-radius:9px;padding:12px 14px;text-align:center}
+.rpt-stat .n{font-size:22px;font-weight:bold;color:#185FA5}
+.rpt-stat .l{font-size:11px;color:#555;margin-top:3px}
+.toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;display:none;border:1px solid;font-weight:bold;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.ov{position:fixed;inset:0;background:rgba(240,244,248,0.85);display:flex;align-items:center;justify-content:center;z-index:998}
+.spinner{width:44px;height:44px;border:4px solid #E6F1FB;border-top-color:#185FA5;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.fr2,.fr3,.fr4{grid-template-columns:1fr}.metrics,.rpt-stats{grid-template-columns:1fr 1fr}.topbar{overflow-x:auto}}
+@media print{.topbar,.btn-row,.btn{display:none!important}}
+</style>
+</head>
+<body>
+
+<div id="ov" class="ov">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <p style="margin-top:14px;color:#185FA5;font-weight:bold;font-size:14px" id="ov-msg">Connecting to Turso Cloud...</p>
+  </div>
+</div>
+
+<div class="topbar">
+  <span class="brand">&#128666; LogiSoft</span>
+  <button class="nb active" onclick="nav('dkt',this)">Docket Entry</button>
+  <button class="nb" onclick="nav('manifest',this)">Manifest</button>
+  <button class="nb" onclick="nav('thc',this)">THC</button>
+  <button class="nb" onclick="nav('tracking',this)">Tracking</button>
+  <button class="nb" onclick="nav('masters',this)">Masters</button>
+  <button class="nb" onclick="nav('reports',this)">Reports</button>
+  <div class="db-status">
+    <div class="db-dot spin" id="dbd"></div>
+    <span id="dbl">Connecting...</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- DOCKET ENTRY -->
+<div id="pg-dkt" class="page active">
+  <div class="metrics">
+    <div class="metric"><div class="num" id="m-tot">—</div><div class="lbl">Total DKTs</div></div>
+    <div class="metric"><div class="num" id="m-bk">—</div><div class="lbl">Booked</div></div>
+    <div class="metric"><div class="num" id="m-tr">—</div><div class="lbl">In Transit</div></div>
+    <div class="metric"><div class="num" id="m-dl">—</div><div class="lbl">Delivered</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">New Docket Entry
+      <span id="dkt-badge" style="font-size:12px;background:#E6F1FB;color:#0C447C;padding:3px 12px;border-radius:20px;border:1px solid #b5d4f4"></span>
+    </div>
+    <div class="slabel">Docket Info</div>
+    <div class="fr fr3">
+      <div class="fg">
+        <label>DKT Number
+          <span id="dkt-mode-badge" style="font-size:10px;background:#185FA5;color:#fff;padding:2px 8px;border-radius:20px;margin-left:4px;font-weight:normal">AUTO</span>
+        </label>
+        <input id="f-dktno" readonly placeholder="Loading...">
+        <span id="dkt-mode-hint" style="font-size:11px;color:#888;margin-top:2px">Auto-generated from settings</span>
+      </div>
+      <div class="fg"><label>Date</label><input type="date" id="f-date"></div>
+      <div class="fg"><label>Vehicle Number</label><input id="f-veh" placeholder="MH05 AB 1234"></div>
+    </div>
+    <div class="fr fr2">
+      <div class="fg"><label>From (Origin)</label><input id="f-from" list="branch-list" placeholder="Select / type branch"></div>
+      <div class="fg"><label>To (Destination)</label><input id="f-to" list="branch-list" placeholder="Select / type branch"></div>
+    </div>
+    <div class="fr fr2">
+      <div class="fg"><label>Consignor (Party Name - From)</label><input id="f-consignor" list="cust-list" placeholder="Select / type customer"></div>
+      <div class="fg"><label>Consignee (Party Name - To)</label><input id="f-consignee" list="cust-list" placeholder="Select / type customer"></div>
+    </div>
+    <div class="fr fr4">
+      <div class="fg"><label>Goods Description</label><input id="f-desc" placeholder="e.g. Electronics"></div>
+      <div class="fg"><label>Package Type</label><input id="f-pkg" list="pkg-list" placeholder="Box / Bag ..."></div>
+      <div class="fg"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0" min="0"></div>
+      <div class="fg"><label>No. of Packages</label><input type="number" id="f-pkgs" placeholder="1" min="1"></div>
+    </div>
+    <div class="fr fr2">
+      <div class="fg"><label>Payment Mode</label><select id="f-pay"><option>To Pay</option><option>Paid</option><option>To Bill</option></select></div>
+      <div class="fg"><label>GST Type</label>
+        <select id="f-gsttype" onchange="calc()">
+          <option value="cs">CGST + SGST (Intra-state)</option>
+          <option value="ig">IGST (Inter-state)</option>
+          <option value="nil">NIL / Exempt</option>
+        </select>
+      </div>
+    </div>
+    <div class="slabel">Charges Breakup</div>
+    <div class="fr fr4">
+      <div class="fg"><label>Freight (&#8377;)</label><input type="number" id="c-fr" placeholder="0" oninput="calc()"></div>
+      <div class="fg"><label>DKT Charges (&#8377;)</label><input type="number" id="c-dk" placeholder="0" oninput="calc()"></div>
+      <div class="fg"><label>Handling (&#8377;)</label><input type="number" id="c-ha" placeholder="0" oninput="calc()"></div>
+      <div class="fg"><label>Door Delivery (&#8377;)</label><input type="number" id="c-dd" placeholder="0" oninput="calc()"></div>
+    </div>
+    <div class="fr fr4">
+      <div class="fg"><label>Misc Charges (&#8377;)</label><input type="number" id="c-mi" placeholder="0" oninput="calc()"></div>
+      <div class="fg"><label>Misc Remarks</label><input id="c-mir" placeholder="Toll, Detention..."></div>
+      <div class="fg"><label>GST Rate (%)</label>
+        <select id="c-gr" onchange="calc()"><option value="0">0%</option><option value="5" selected>5%</option><option value="12">12%</option><option value="18">18%</option></select>
+      </div>
+      <div class="fg"><label>GST Applied On</label>
+        <select id="c-go" onchange="calc()"><option value="fr">Freight only</option><option value="all">All charges</option></select>
+      </div>
+    </div>
+    <div class="cs">
+      <div class="cs-row sub"><span>Freight</span><span id="s-fr">&#8377; 0.00</span></div>
+      <div class="cs-row sub"><span>DKT Charges</span><span id="s-dk">&#8377; 0.00</span></div>
+      <div class="cs-row sub"><span>Handling</span><span id="s-ha">&#8377; 0.00</span></div>
+      <div class="cs-row sub"><span>Door Delivery</span><span id="s-dd">&#8377; 0.00</span></div>
+      <div class="cs-row sub"><span>Misc Charges</span><span id="s-mi">&#8377; 0.00</span></div>
+      <div class="cs-row div sub"><span>Sub Total</span><span id="s-sub">&#8377; 0.00</span></div>
+      <div class="cs-row sub" id="r-cg"><span>CGST</span><span id="s-cg">&#8377; 0.00</span></div>
+      <div class="cs-row sub" id="r-sg"><span>SGST</span><span id="s-sg">&#8377; 0.00</span></div>
+      <div class="cs-row sub" id="r-ig" style="display:none"><span>IGST</span><span id="s-ig">&#8377; 0.00</span></div>
+      <div class="cs-row tot"><span>Grand Total</span><span id="s-gt">&#8377; 0.00</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-blue" onclick="saveDkt()">&#10003; Save Docket</button>
+      <button class="btn btn-green" onclick="printDkt()">&#128438; Print DKT</button>
+      <button class="btn" onclick="clrDkt()">&#10005; Clear</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Docket List <button class="btn btn-blue btn-sm" onclick="loadDkts()">&#8635; Refresh</button></div>
+    <div class="tbl-wrap" id="dkt-tbl"><div class="empty">Loading from cloud...</div></div>
+  </div>
+</div>
+
+<!-- MANIFEST -->
+<div id="pg-manifest" class="page">
+  <div class="card">
+    <div class="ctitle">Create Manifest</div>
+    <p style="font-size:13px;color:#555;margin-bottom:12px">Select dockets to include in this manifest:</p>
+    <div id="dkt-cl"><div class="empty">Loading...</div></div>
+    <div class="btn-row">
+      <button class="btn btn-blue" onclick="genMft()">&#10003; Generate Manifest</button>
+      <button class="btn" onclick="selAll()">Select All</button>
+      <button class="btn" onclick="clrSel()">Clear</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Manifest List <button class="btn btn-blue btn-sm" onclick="loadMfts()">&#8635; Refresh</button></div>
+    <div class="tbl-wrap" id="mft-tbl"><div class="empty">Loading...</div></div>
+  </div>
+</div>
+
+<!-- THC -->
+<div id="pg-thc" class="page">
+  <div class="card">
+    <div class="ctitle">THC — Transport Handling Charges</div>
+    <div class="fr fr2">
+      <div class="fg"><label>Link To</label><select id="thc-type" onchange="refreshThcDd()"><option value="dkt">Docket (DKT)</option><option value="mft">Manifest</option></select></div>
+      <div class="fg"><label>Select DKT / Manifest</label><select id="thc-id"></select></div>
+    </div>
+    <div class="fr fr3">
+      <div class="fg"><label>Loading Charges (&#8377;)</label><input type="number" id="t-ld" placeholder="0" oninput="calcThc()"></div>
+      <div class="fg"><label>Unloading Charges (&#8377;)</label><input type="number" id="t-ul" placeholder="0" oninput="calcThc()"></div>
+      <div class="fg"><label>Misc Charges (&#8377;)</label><input type="number" id="t-mi" placeholder="0" oninput="calcThc()"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#E6F1FB;border-radius:8px;padding:12px 16px;margin-top:10px;border:1px solid #b5d4f4">
+      <span style="font-size:14px;color:#185FA5;font-weight:bold">Total Amount</span>
+      <span style="font-size:20px;font-weight:bold;color:#0C447C" id="thc-tot">&#8377; 0.00</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-blue" onclick="saveThc()">&#10003; Save THC</button>
+      <button class="btn" onclick="clrThc()">Clear</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">THC Records <button class="btn btn-blue btn-sm" onclick="loadThcs()">&#8635; Refresh</button></div>
+    <div class="tbl-wrap" id="thc-tbl"><div class="empty">Loading...</div></div>
+  </div>
+</div>
+
+<!-- TRACKING -->
+<div id="pg-tracking" class="page">
+  <div class="tw">
+    <div class="card">
+      <div class="ctitle">&#128269; Track Shipment</div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Enter DKT Number</label>
+        <input id="trk-in" placeholder="e.g. DKT-00001" style="font-size:15px;padding:10px 12px" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="btn btn-blue" style="width:100%;padding:10px" onclick="trackIt()">Track Shipment</button>
+    </div>
+    <div id="trk-res"></div>
+  </div>
+</div>
+
+<!-- MASTERS -->
+<div id="pg-masters" class="page">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="mTab('customers',this)">&#128100; Customers</button>
+    <button class="tab-btn" onclick="mTab('branches',this)">&#127970; Branches</button>
+    <button class="tab-btn" onclick="mTab('pkgtypes',this)">&#128230; Pkg Types</button>
+    <button class="tab-btn" onclick="mTab('dktsettings',this)">&#9881; DKT Settings</button>
+  </div>
+
+  <div id="ms-customers" class="sub-page active">
+    <div class="card">
+      <div class="ctitle">Add Customer</div>
+      <div class="fr fr3">
+        <div class="fg"><label>Customer Name</label><input id="cu-name" placeholder="Full name / company"></div>
+        <div class="fg"><label>Phone</label><input id="cu-ph" placeholder="9XXXXXXXXX"></div>
+        <div class="fg"><label>GST Number</label><input id="cu-gst" placeholder="27AAAAA0000A1Z5"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="fg"><label>Address</label><input id="cu-addr" placeholder="Street, City, State"></div>
+        <div class="fg"><label>Customer Type</label><select id="cu-type"><option>Consignor</option><option>Consignee</option><option>Both</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-blue" onclick="saveCust()">&#10003; Add Customer</button><button class="btn" onclick="clrCust()">Clear</button></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Customer List <span id="cust-count" class="badge bb">0</span></div>
+      <div class="tbl-wrap" id="cust-tbl"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <div id="ms-branches" class="sub-page">
+    <div class="card">
+      <div class="ctitle">Add Branch</div>
+      <div class="fr fr3">
+        <div class="fg"><label>Branch Name</label><input id="br-name" placeholder="e.g. Mumbai HO"></div>
+        <div class="fg"><label>City</label><input id="br-city" placeholder="City"></div>
+        <div class="fg"><label>State</label><input id="br-state" placeholder="State"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="fg"><label>Contact Person</label><input id="br-cp" placeholder="Name"></div>
+        <div class="fg"><label>Phone</label><input id="br-ph" placeholder="9XXXXXXXXX"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-blue" onclick="saveBranch()">&#10003; Add Branch</button><button class="btn" onclick="clrBranch()">Clear</button></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Branch List <span id="branch-count" class="badge bb">0</span></div>
+      <div class="tbl-wrap" id="branch-tbl"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <div id="ms-pkgtypes" class="sub-page">
+    <div class="card">
+      <div class="ctitle">Add Package Type</div>
+      <div class="fr fr3">
+        <div class="fg"><label>Package Type Name</label><input id="pt-name" placeholder="e.g. Wooden Box"></div>
+        <div class="fg"><label>Short Code</label><input id="pt-code" placeholder="e.g. WB"></div>
+        <div class="fg"><label>Description</label><input id="pt-desc" placeholder="Optional"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-blue" onclick="savePkg()">&#10003; Add Package Type</button><button class="btn" onclick="clrPkg()">Clear</button></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Package Type List <span id="pkg-count" class="badge bb">0</span></div>
+      <div class="tbl-wrap" id="pkg-tbl"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <div id="ms-dktsettings" class="sub-page">
+    <div class="card">
+      <div class="ctitle">&#9881; DKT Number Settings</div>
+      <div style="background:#FFF8E6;border:1px solid #F5C842;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#7A5800">
+        <b>&#9432; How it works:</b> <b>Manual</b> = you type a DKT number freely each time. <b>Automatic</b> = set a prefix &amp; starting number, auto-increments by 1 after every save.
+      </div>
+      <div class="fr fr2">
+        <div class="fg"><label>Numbering Mode</label>
+          <select id="dkt-mode" onchange="onDktModeChange()">
+            <option value="auto">Automatic (Auto-increment)</option>
+            <option value="manual">Manual (Type each time)</option>
+          </select>
+        </div>
+        <div class="fg" id="dkt-prefix-group"><label>Prefix (e.g. DKT, BOM, MUM)</label><input id="dkt-prefix" placeholder="DKT" maxlength="10" oninput="previewDktNo()"></div>
+      </div>
+      <div class="fr fr2" id="dkt-start-group">
+        <div class="fg"><label>Starting / Current Number</label><input type="number" id="dkt-startnum" placeholder="1" min="1" oninput="previewDktNo()"></div>
+        <div class="fg"><label>Number of Digits (padding)</label>
+          <select id="dkt-digits" onchange="previewDktNo()">
+            <option value="3">3 digits (001)</option><option value="4">4 digits (0001)</option>
+            <option value="5" selected>5 digits (00001)</option><option value="6">6 digits (000001)</option>
+          </select>
+        </div>
+      </div>
+      <div id="dkt-preview-box" style="margin-top:8px;padding:12px 16px;background:#E6F1FB;border-radius:8px;border:1px solid #b5d4f4;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-size:12px;color:#185FA5;font-weight:bold">Preview:</span>
+        <span id="dkt-preview" style="font-size:18px;font-weight:bold;color:#0C447C;letter-spacing:1px">DKT-00001</span>
+        <span style="font-size:12px;color:#555">&#8594; next: <span id="dkt-preview-next" style="font-weight:bold">DKT-00002</span></span>
+      </div>
+      <div class="btn-row"><button class="btn btn-blue" onclick="saveDktSettings()">&#10003; Save Settings to Cloud</button></div>
+    </div>
+    <div class="card" style="background:#f8fbff">
+      <div class="ctitle">Current Settings (from cloud)</div>
+      <div id="dkt-settings-summary" style="font-size:13px;color:#444;line-height:2">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORTS -->
+<div id="pg-reports" class="page">
+  <div class="card">
+    <div class="ctitle">&#128202; Docket Register — Month Wise</div>
+    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="fg" style="flex:1;min-width:130px"><label>Month</label><input type="month" id="rpt-month"></div>
+      <div class="fg" style="flex:1;min-width:130px"><label>Status</label><select id="rpt-status"><option value="">All Statuses</option><option>Booked</option><option>In Transit</option><option>Delivered</option></select></div>
+      <div class="fg" style="flex:1;min-width:130px"><label>Payment</label><select id="rpt-pay"><option value="">All Modes</option><option>To Pay</option><option>Paid</option><option>To Bill</option></select></div>
+      <button class="btn btn-blue" style="height:38px" onclick="runReport()">&#128202; Generate</button>
+      <button class="btn btn-green" style="height:38px" onclick="printReport()">&#128438; Print</button>
+    </div>
+  </div>
+  <div class="rpt-stats" id="rpt-stats" style="display:none">
+    <div class="rpt-stat"><div class="n" id="rs-cnt">0</div><div class="l">Total DKTs</div></div>
+    <div class="rpt-stat"><div class="n" id="rs-fr">&#8377;0</div><div class="l">Total Freight</div></div>
+    <div class="rpt-stat"><div class="n" id="rs-gst">&#8377;0</div><div class="l">Total GST</div></div>
+    <div class="rpt-stat"><div class="n" id="rs-gt">&#8377;0</div><div class="l">Grand Total</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle" id="rpt-title">Report will appear here</div>
+    <div class="tbl-wrap" id="rpt-tbl"><div class="empty">Select month and click Generate.</div></div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<datalist id="branch-list"></datalist>
+<datalist id="cust-list"></datalist>
+<datalist id="pkg-list"></datalist>
+<div id="toast" class="toast"></div>
+
+<script>
+// ═══════════════════════════════════
+//  TURSO CONFIG
+// ═══════════════════════════════════
+var DB_URL   = 'https://logistics-prashant2026.aws-ap-south-1.turso.io';
+var DB_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3Nzc0NjI0NDMsImlkIjoiMDE5ZGQ4NzUtOGUwMS03MTBiLTg2ZTQtNDMxNzRlMjVmYTk0IiwicmlkIjoiNGVjZjhjMzUtZTBmMy00M2NkLWFlNGYtZGI1MGZiM2FhMjdlIn0.4oacbMFZ8beM_4N0akXSZQF5ZA1Aw2lWzOynfn3oTInud5OpZMxr0NSdRu3QLfIpyWRg_hGN6dhDIcHdO9dXDw';
+
+// ═══════════════════════════════════
+//  TURSO QUERY FUNCTION
+// ═══════════════════════════════════
+async function db(sql, params) {
+  params = params || [];
+  var args = params.map(function(v) {
+    if (v === null || v === undefined) return { type: 'null' };
+    if (typeof v === 'number') return { type: 'float', value: String(v) };
+    return { type: 'text', value: String(v) };
+  });
+  try {
+    var resp = await fetch(DB_URL + '/v2/pipeline', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + DB_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [
+        { type: 'execute', stmt: { sql: sql, args: args } },
+        { type: 'close' }
+      ]})
+    });
+    var data = await resp.json();
+    var res = data.results && data.results[0];
+    if (!res || res.type === 'error') {
+      console.error('DB error:', res && res.error);
+      return null;
+    }
+    var result = res.response && res.response.result;
+    if (!result) return { rows: [], affected: 0 };
+    var cols = result.cols.map(function(c) { return c.name; });
+    var rows = result.rows.map(function(r) {
+      var o = {};
+      cols.forEach(function(c, i) { o[c] = r[i] ? r[i].value : null; });
+      return o;
+    });
+    return { rows: rows, affected: result.affected_row_count || 0 };
+  } catch (e) {
+    console.error('DB fetch failed:', e);
+    return null;
+  }
+}
+
+// ═══════════════════════════════════
+//  STATE
+// ═══════════════════════════════════
+var dkts = [], mfts = [], thcs = [], custs = [], branches = [], pkgtypes = [];
+var DS = { mode: 'auto', prefix: 'DKT', digits: 5, counter: 0 };
+
+// ═══════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════
+function fmt(n) { return '\u20B9 ' + parseFloat(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmtN(n) { return parseFloat(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function gi(id) { return document.getElementById(id).value; }
+function uid() { return 'ID' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4).toUpperCase(); }
+
+function toast(msg, ok) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  t.style.background = ok === false ? '#FCEBEB' : '#EAF3DE';
+  t.style.color = ok === false ? '#791F1F' : '#27500A';
+  t.style.borderColor = ok === false ? '#E24B4A' : '#1D9E75';
+  clearTimeout(t._tm); t._tm = setTimeout(function() { t.style.display = 'none'; }, 3000);
+}
+
+function setDbOk(msg) {
+  document.getElementById('dbd').className = 'db-dot ok';
+  document.getElementById('dbl').textContent = msg || 'Cloud Connected';
+}
+
+function setDbErr(msg) {
+  document.getElementById('dbd').className = 'db-dot err';
+  document.getElementById('dbl').textContent = msg || 'DB Error';
+}
+
+function hideOv() { document.getElementById('ov').style.display = 'none'; }
+
+function sbadge(s) {
+  if (s === 'Booked') return '<span class="badge bb">Booked</span>';
+  if (s === 'In Transit') return '<span class="badge ba">In Transit</span>';
+  if (s === 'Delivered') return '<span class="badge bg">Delivered</span>';
+  return '<span class="badge bgr">' + s + '</span>';
+}
+
+// ═══════════════════════════════════
+//  NAV
+// ═══════════════════════════════════
+function nav(pg, btn) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nb').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('pg-' + pg).classList.add('active');
+  btn.classList.add('active');
+  if (pg === 'dkt') loadDkts();
+  if (pg === 'manifest') { loadDkts().then(renderChecklist); loadMfts(); }
+  if (pg === 'thc') { refreshThcDd(); loadThcs(); }
+  if (pg === 'masters') loadAllMasters();
+  if (pg === 'reports') document.getElementById('rpt-month').value = new Date().toISOString().slice(0, 7);
+}
+
+function mTab(sub, btn) {
+  document.querySelectorAll('.sub-page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('ms-' + sub).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════
+//  DKT SETTINGS
+// ═══════════════════════════════════
+async function loadDktSettings() {
+  var r = await db('SELECT * FROM dkt_settings WHERE id=1');
+  if (r && r.rows && r.rows.length) {
+    var row = r.rows[0];
+    DS = { mode: row.mode || 'auto', prefix: row.prefix || 'DKT', digits: parseInt(row.digits) || 5, counter: parseInt(row.counter) || 0 };
+  }
+}
+
+function buildNo(n) { return DS.prefix + '-' + String(n).padStart(DS.digits, '0'); }
+function nextNo() { return buildNo(DS.counter + 1); }
+
+function applyDktUI() {
+  var inp = document.getElementById('f-dktno');
+  var badge = document.getElementById('dkt-mode-badge');
+  var hint = document.getElementById('dkt-mode-hint');
+  if (DS.mode === 'manual') {
+    inp.removeAttribute('readonly'); inp.style.background = '#fff'; inp.style.color = '#222'; inp.value = ''; inp.placeholder = 'Type DKT number here';
+    badge.textContent = 'MANUAL'; badge.style.background = '#BA7517';
+    hint.textContent = 'Type a unique DKT number manually';
+  } else {
+    inp.setAttribute('readonly', 'readonly'); inp.style.background = '#f0f4f8'; inp.style.color = '#0C447C'; inp.value = nextNo();
+    badge.textContent = 'AUTO'; badge.style.background = '#185FA5';
+    hint.textContent = 'Auto-generated — increments after each save';
+  }
+  var b2 = document.getElementById('dkt-badge');
+  if (b2) b2.textContent = DS.mode === 'auto' ? nextNo() : 'Manual Entry';
+}
+
+function onDktModeChange() {
+  var isAuto = gi('dkt-mode') !== 'manual';
+  ['dkt-prefix-group', 'dkt-start-group', 'dkt-preview-box'].forEach(function(id) {
+    document.getElementById(id).style.display = isAuto ? '' : 'none';
+  });
+  previewDktNo();
+}
+
+function previewDktNo() {
+  var p = gi('dkt-prefix') || 'DKT', d = parseInt(gi('dkt-digits')) || 5, n = parseInt(gi('dkt-startnum')) || 1;
+  document.getElementById('dkt-preview').textContent = p + '-' + String(n).padStart(d, '0');
+  document.getElementById('dkt-preview-next').textContent = p + '-' + String(n + 1).padStart(d, '0');
+}
+
+async function saveDktSettings() {
+  var mode = gi('dkt-mode'), prefix = gi('dkt-prefix').trim().toUpperCase() || 'DKT';
+  var digits = parseInt(gi('dkt-digits')) || 5, startNum = parseInt(gi('dkt-startnum')) || 1;
+  var counter = mode === 'auto' ? startNum - 1 : DS.counter;
+  var r = await db('UPDATE dkt_settings SET mode=?,prefix=?,digits=?,counter=? WHERE id=1', [mode, prefix, digits, counter]);
+  if (r !== null) {
+    DS = { mode: mode, prefix: prefix, digits: digits, counter: counter };
+    applyDktUI(); renderDktSettingsSummary(); toast('DKT Settings saved to cloud!');
+  } else toast('Save failed', false);
+}
+
+function renderDktSettingsSummary() {
+  var el = document.getElementById('dkt-settings-summary'); if (!el) return;
+  if (DS.mode === 'manual') {
+    el.innerHTML = '<p><b>Mode:</b> <span class="badge ba">&#9997; Manual Entry</span></p><p style="margin-top:8px;color:#666">You type a unique DKT number on every docket. System warns on duplicates.</p>';
+  } else {
+    el.innerHTML = '<p><b>Mode:</b> <span class="badge bb">&#128260; Automatic</span> &nbsp; <b>Prefix:</b> ' + DS.prefix + ' &nbsp; <b>Digits:</b> ' + DS.digits + '</p><p style="margin-top:8px;color:#185FA5;font-size:15px;font-weight:bold">Next DKT No: ' + nextNo() + '</p>';
+  }
+}
+
+function loadDktSettingsUI() {
+  document.getElementById('dkt-mode').value = DS.mode;
+  document.getElementById('dkt-prefix').value = DS.prefix;
+  document.getElementById('dkt-startnum').value = DS.counter + 1;
+  document.getElementById('dkt-digits').value = String(DS.digits);
+  onDktModeChange(); renderDktSettingsSummary();
+}
+
+// ═══════════════════════════════════
+//  DOCKETS
+// ═══════════════════════════════════
+async function loadDkts() {
+  var r = await db('SELECT * FROM dockets ORDER BY created_at DESC');
+  if (r) {
+    dkts = r.rows.map(function(row) {
+      var ch = {}; try { ch = JSON.parse(row.charges || '{}'); } catch (e) {}
+      return { id: row.id, date: row.date, from: row.from_city, to: row.to_city, consignor: row.consignor, consignee: row.consignee, veh: row.vehicle, desc: row.description, pkg: row.pkg_type, wt: row.weight, pkgs: row.packages, pay: row.payment, ch: ch, status: row.status, mId: row.manifest_id };
+    });
+    renderDktTbl(); updateMetrics();
+  }
+}
+
+function initDktForm() {
+  applyDktUI();
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  calc();
+}
+
+function calc() {
+  var fr = gv('c-fr'), dk = gv('c-dk'), ha = gv('c-ha'), dd = gv('c-dd'), mi = gv('c-mi');
+  var sub = fr + dk + ha + dd + mi, rate = parseFloat(gi('c-gr')) / 100;
+  var go = gi('c-go'), gt = gi('f-gsttype'), base = go === 'fr' ? fr : sub;
+  var gst = base * rate, half = gst / 2;
+  document.getElementById('s-fr').textContent = fmt(fr); document.getElementById('s-dk').textContent = fmt(dk);
+  document.getElementById('s-ha').textContent = fmt(ha); document.getElementById('s-dd').textContent = fmt(dd);
+  document.getElementById('s-mi').textContent = fmt(mi); document.getElementById('s-sub').textContent = fmt(sub);
+  var rcg = document.getElementById('r-cg'), rsg = document.getElementById('r-sg'), rig = document.getElementById('r-ig');
+  if (gt === 'cs') { rcg.style.display = ''; rsg.style.display = ''; rig.style.display = 'none'; document.getElementById('s-cg').textContent = fmt(half); document.getElementById('s-sg').textContent = fmt(half); }
+  else if (gt === 'ig') { rcg.style.display = 'none'; rsg.style.display = 'none'; rig.style.display = ''; document.getElementById('s-ig').textContent = fmt(gst); }
+  else { rcg.style.display = 'none'; rsg.style.display = 'none'; rig.style.display = 'none'; }
+  document.getElementById('s-gt').textContent = fmt(sub + gst);
+}
+
+function getCh() {
+  var fr = gv('c-fr'), dk = gv('c-dk'), ha = gv('c-ha'), dd = gv('c-dd'), mi = gv('c-mi');
+  var sub = fr + dk + ha + dd + mi, rate = parseFloat(gi('c-gr')) / 100;
+  var go = gi('c-go'), gt = gi('f-gsttype'), base = go === 'fr' ? fr : sub;
+  var gst = base * rate, half = gst / 2;
+  return { fr: fr, dk: dk, ha: ha, dd: dd, mi: mi, sub: sub, gt: gt, gstRate: rate * 100, go: go, cgst: gt === 'cs' ? half : 0, sgst: gt === 'cs' ? half : 0, igst: gt === 'ig' ? gst : 0, totalGst: gst, grand: sub + gst, miscRem: gi('c-mir') };
+}
+
+async function saveDkt() {
+  var from = gi('f-from').trim(), to = gi('f-to').trim(), cons = gi('f-consignor').trim(), cne = gi('f-consignee').trim();
+  if (!from || !to || !cons || !cne) { toast('Fill From, To, Consignor, Consignee', false); return; }
+  var id = gi('f-dktno').trim(); if (!id) { toast('DKT Number required', false); return; }
+  var chk = await db('SELECT id FROM dockets WHERE id=?', [id]);
+  if (chk && chk.rows && chk.rows.length) { toast('DKT "' + id + '" already exists!', false); return; }
+  var ch = getCh();
+  var r = await db('INSERT INTO dockets(id,date,from_city,to_city,consignor,consignee,vehicle,description,pkg_type,weight,packages,payment,status,manifest_id,charges,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime("now"))',
+    [id, gi('f-date'), from, to, cons, cne, gi('f-veh'), gi('f-desc'), gi('f-pkg'), parseFloat(gi('f-wt')) || 0, parseInt(gi('f-pkgs')) || 1, gi('f-pay'), 'Booked', null, JSON.stringify(ch)]);
+  if (r !== null && DS.mode === 'auto') {
+    DS.counter++;
+    await db('UPDATE dkt_settings SET counter=? WHERE id=1', [DS.counter]);
+  }
+  if (r !== null) { toast(id + ' saved to cloud! ✓'); clrDkt(); await loadDkts(); }
+  else toast('Save failed — check connection', false);
+}
+
+function clrDkt() {
+  ['f-from', 'f-to', 'f-consignor', 'f-consignee', 'f-veh', 'f-desc', 'f-pkg', 'f-wt', 'f-pkgs', 'c-fr', 'c-dk', 'c-ha', 'c-dd', 'c-mi', 'c-mir'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('f-pay').value = 'To Pay'; document.getElementById('f-gsttype').value = 'cs';
+  document.getElementById('c-gr').value = '5'; document.getElementById('c-go').value = 'fr';
+  initDktForm();
+}
+
+function printDkt() {
+  var c = getCh(), id = gi('f-dktno');
+  var w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>' + id + '</title><style>body{font-family:Arial,sans-serif;padding:24px;font-size:13px}h2{color:#185FA5}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;padding:12px;background:#f0f4f8;border-radius:8px;margin-bottom:14px}.lbl{font-size:10px;color:#888;text-transform:uppercase;font-weight:bold}table{width:100%;border-collapse:collapse;margin-top:10px}td{padding:6px 10px;border:1px solid #e0eaf5}td:last-child{text-align:right}.tot{font-weight:bold;border-top:2px solid #185FA5;font-size:14px}</style></head><body>');
+  w.document.write('<h2>' + id + '</h2><p style="color:#555;margin-bottom:12px">Date: ' + gi('f-date') + ' | Vehicle: ' + (gi('f-veh') || '—') + ' | Payment: ' + gi('f-pay') + '</p>');
+  w.document.write('<div class="info"><div><div class="lbl">From</div><b>' + gi('f-from') + '</b></div><div><div class="lbl">To</div><b>' + gi('f-to') + '</b></div><div><div class="lbl">Consignor</div>' + gi('f-consignor') + '</div><div><div class="lbl">Consignee</div>' + gi('f-consignee') + '</div><div><div class="lbl">Goods / Package</div>' + (gi('f-desc') || '—') + ' / ' + (gi('f-pkg') || '—') + '</div><div><div class="lbl">Weight / Pkgs</div>' + (gi('f-wt') || 0) + ' kg / ' + (gi('f-pkgs') || 1) + '</div></div>');
+  w.document.write('<table><tr><td>Freight</td><td>&#8377;' + fmtN(c.fr) + '</td></tr><tr><td>DKT Charges</td><td>&#8377;' + fmtN(c.dk) + '</td></tr><tr><td>Handling</td><td>&#8377;' + fmtN(c.ha) + '</td></tr><tr><td>Door Delivery</td><td>&#8377;' + fmtN(c.dd) + '</td></tr><tr><td>Misc' + (c.miscRem ? ' (' + c.miscRem + ')' : '') + '</td><td>&#8377;' + fmtN(c.mi) + '</td></tr><tr><td><b>Sub Total</b></td><td><b>&#8377;' + fmtN(c.sub) + '</b></td></tr>');
+  if (c.gt === 'cs') w.document.write('<tr><td>CGST (' + c.gstRate / 2 + '%)</td><td>&#8377;' + fmtN(c.cgst) + '</td></tr><tr><td>SGST (' + c.gstRate / 2 + '%)</td><td>&#8377;' + fmtN(c.sgst) + '</td></tr>');
+  else if (c.gt === 'ig') w.document.write('<tr><td>IGST (' + c.gstRate + '%)</td><td>&#8377;' + fmtN(c.igst) + '</td></tr>');
+  w.document.write('<tr class="tot"><td>Grand Total</td><td>&#8377;' + fmtN(c.grand) + '</td></tr></table></body></html>');
+  w.document.close(); w.print();
+}
+
+function updateMetrics() {
+  document.getElementById('m-tot').textContent = dkts.length;
+  document.getElementById('m-bk').textContent = dkts.filter(function(d) { return d.status === 'Booked'; }).length;
+  document.getElementById('m-tr').textContent = dkts.filter(function(d) { return d.status === 'In Transit'; }).length;
+  document.getElementById('m-dl').textContent = dkts.filter(function(d) { return d.status === 'Delivered'; }).length;
+}
+
+async function updStatus(id, val) {
+  var r = await db('UPDATE dockets SET status=? WHERE id=?', [val, id]);
+  if (r !== null) { var d = dkts.find(function(d) { return d.id === id; }); if (d) d.status = val; updateMetrics(); toast('Status updated!'); }
+  else toast('Update failed', false);
+}
+
+function renderDktTbl() {
+  var w = document.getElementById('dkt-tbl');
+  if (!dkts.length) { w.innerHTML = '<div class="empty">No dockets yet. Add your first docket above.</div>'; return; }
+  var rows = dkts.map(function(d) {
+    return '<tr><td><b>' + d.id + '</b></td><td>' + d.date + '</td><td>' + d.from + '&#8594;' + d.to + '</td><td>' + d.consignor + '</td><td>' + d.consignee + '</td><td>' + (d.pkg || '—') + '</td><td>' + d.pay + '</td><td><b>&#8377;' + fmtN(d.ch && d.ch.grand || 0) + '</b></td><td>' + sbadge(d.status) + '</td><td><select style="padding:4px 6px;font-size:11px;border-radius:5px;border:1px solid #b5d4f4" onchange="updStatus(\'' + d.id + '\',this.value)"><option' + (d.status === 'Booked' ? ' selected' : '') + '>Booked</option><option' + (d.status === 'In Transit' ? ' selected' : '') + '>In Transit</option><option' + (d.status === 'Delivered' ? ' selected' : '') + '>Delivered</option></select></td></tr>';
+  }).join('');
+  w.innerHTML = '<table><thead><tr><th>DKT No.</th><th>Date</th><th>Route</th><th>Consignor</th><th>Consignee</th><th>Pkg</th><th>Pay</th><th>Grand Total</th><th>Status</th><th>Update</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ═══════════════════════════════════
+//  MANIFEST
+// ═══════════════════════════════════
+async function loadMfts() {
+  var r = await db('SELECT * FROM manifests ORDER BY created_at DESC');
+  if (r) { mfts = r.rows; renderMftTbl(); }
+}
+
+function renderChecklist() {
+  var el = document.getElementById('dkt-cl');
+  var free = dkts.filter(function(d) { return !d.mId; });
+  if (!free.length) { el.innerHTML = '<div class="empty">No unassigned dockets.</div>'; return; }
+  el.innerHTML = free.map(function(d) { return '<label class="cb-row"><input type="checkbox" class="dkt-cb" value="' + d.id + '"><span><b>' + d.id + '</b> — ' + d.from + '&#8594;' + d.to + ' | ' + d.consignor + ' &#8594; ' + d.consignee + '</span>' + sbadge(d.status) + '</label>'; }).join('');
+}
+
+function selAll() { document.querySelectorAll('.dkt-cb').forEach(function(c) { c.checked = true; }); }
+function clrSel() { document.querySelectorAll('.dkt-cb').forEach(function(c) { c.checked = false; }); }
+
+async function genMft() {
+  var sel = Array.from(document.querySelectorAll('.dkt-cb:checked')).map(function(c) { return c.value; });
+  if (!sel.length) { toast('Select at least one docket', false); return; }
+  var mid = 'MFT-' + Date.now().toString(36).toUpperCase();
+  var r = await db('INSERT INTO manifests(id,date,dkt_ids,created_at) VALUES(?,?,?,datetime("now"))', [mid, new Date().toISOString().split('T')[0], sel.join(',')]);
+  if (r !== null) {
+    for (var i = 0; i < sel.length; i++) await db('UPDATE dockets SET manifest_id=? WHERE id=?', [mid, sel[i]]);
+    toast('Manifest ' + mid + ' created!'); await loadDkts(); await loadMfts(); renderChecklist();
+  } else toast('Failed', false);
+}
+
+function renderMftTbl() {
+  var w = document.getElementById('mft-tbl');
+  if (!mfts.length) { w.innerHTML = '<div class="empty">No manifests yet.</div>'; return; }
+  var rows = mfts.map(function(m) {
+    var ids = (m.dkt_ids || '').split(',').filter(Boolean);
+    return '<tr><td><b>' + m.id + '</b></td><td>' + m.date + '</td><td style="font-size:11px;white-space:normal">' + (m.dkt_ids || '—') + '</td><td>' + ids.length + '</td><td><button class="btn btn-sm" onclick="printMft(\'' + m.id + '\')">&#128438; Print</button></td></tr>';
+  }).join('');
+  w.innerHTML = '<table><thead><tr><th>Manifest ID</th><th>Date</th><th>DKTs Included</th><th>Count</th><th>Action</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function printMft(mid) {
+  var m = mfts.find(function(m) { return m.id === mid; }); if (!m) return;
+  var ids = (m.dkt_ids || '').split(',').filter(Boolean);
+  var rows = ids.map(function(id) {
+    var d = dkts.find(function(d) { return d.id === id; }) || { ch: {} };
+    return '<tr><td>' + (d.id || id) + '</td><td>' + (d.date || '') + '</td><td>' + (d.from || '') + '&#8594;' + (d.to || '') + '</td><td>' + (d.consignor || '') + '</td><td>' + (d.consignee || '') + '</td><td>' + (d.veh || '—') + '</td><td>' + (d.pkgs || '') + '</td><td>' + (d.wt || 0) + ' kg</td><td>&#8377;' + fmtN(d.ch && d.ch.grand || 0) + '</td></tr>';
+  }).join('');
+  var w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>Manifest ' + mid + '</title><style>body{font-family:Arial;padding:20px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px 8px}th{background:#E6F1FB;color:#0C447C}h2{color:#185FA5}</style></head><body><h2>Manifest: ' + mid + '</h2><p>Date: ' + m.date + ' | Total DKTs: ' + ids.length + '</p><table><thead><tr><th>DKT</th><th>Date</th><th>Route</th><th>Consignor</th><th>Consignee</th><th>Vehicle</th><th>Pkgs</th><th>Weight</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>');
+  w.document.close(); w.print();
+}
+
+// ═══════════════════════════════════
+//  THC
+// ═══════════════════════════════════
+async function loadThcs() {
+  var r = await db('SELECT * FROM thc_records ORDER BY date DESC');
+  if (r) { thcs = r.rows; renderThcTbl(); }
+}
+
+function refreshThcDd() {
+  var type = gi('thc-type'), sel = document.getElementById('thc-id');
+  if (type === 'dkt') sel.innerHTML = dkts.length ? dkts.map(function(d) { return '<option value="' + d.id + '">' + d.id + ' — ' + d.from + '&#8594;' + d.to + '</option>'; }).join('') : '<option>No dockets</option>';
+  else sel.innerHTML = mfts.length ? mfts.map(function(m) { return '<option value="' + m.id + '">' + m.id + '</option>'; }).join('') : '<option>No manifests</option>';
+}
+
+function calcThc() { document.getElementById('thc-tot').textContent = fmt(gv('t-ld') + gv('t-ul') + gv('t-mi')); }
+
+async function saveThc() {
+  var lid = gi('thc-id'); if (!lid || lid.startsWith('No ')) { toast('Select a DKT or Manifest', false); return; }
+  var tot = gv('t-ld') + gv('t-ul') + gv('t-mi');
+  var r = await db('INSERT INTO thc_records(id,link_type,link_id,loading,unloading,misc,total,date) VALUES(?,?,?,?,?,?,?,?)', [uid(), gi('thc-type'), lid, gv('t-ld'), gv('t-ul'), gv('t-mi'), tot, new Date().toISOString().split('T')[0]]);
+  if (r !== null) { toast('THC saved!'); clrThc(); loadThcs(); } else toast('Failed', false);
+}
+
+function clrThc() { ['t-ld', 't-ul', 't-mi'].forEach(function(id) { document.getElementById(id).value = ''; }); document.getElementById('thc-tot').textContent = '\u20B9 0.00'; }
+
+function renderThcTbl() {
+  var w = document.getElementById('thc-tbl');
+  if (!thcs.length) { w.innerHTML = '<div class="empty">No THC records yet.</div>'; return; }
+  var rows = thcs.map(function(t) { return '<tr><td>' + t.date + '</td><td><span class="badge bb">' + t.link_id + '</span></td><td>&#8377;' + fmtN(t.loading) + '</td><td>&#8377;' + fmtN(t.unloading) + '</td><td>&#8377;' + fmtN(t.misc) + '</td><td><b>&#8377;' + fmtN(t.total) + '</b></td></tr>'; }).join('');
+  w.innerHTML = '<table><thead><tr><th>Date</th><th>Linked To</th><th>Loading</th><th>Unloading</th><th>Misc</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ═══════════════════════════════════
+//  TRACKING
+// ═══════════════════════════════════
+async function trackIt() {
+  var q = gi('trk-in').trim().toUpperCase(), res = document.getElementById('trk-res');
+  if (!q) { res.innerHTML = ''; return; }
+  var r = await db('SELECT * FROM dockets WHERE id=?', [q]);
+  if (!r || !r.rows || !r.rows.length) { res.innerHTML = '<div class="card"><p style="text-align:center;color:#E24B4A;padding:12px">No shipment found for <b>' + q + '</b>.</p></div>'; return; }
+  var row = r.rows[0], ch = {}; try { ch = JSON.parse(row.charges || '{}'); } catch (e) {}
+  var steps = ['Booked', 'In Transit', 'Delivered'], cur = steps.indexOf(row.status);
+  var tl = steps.map(function(s, i) {
+    var cls = i < cur ? 'done' : i === cur ? 'cur' : '';
+    var sub = i <= cur ? (s === 'Booked' ? 'Created on ' + row.date : s === 'In Transit' ? 'Shipment picked up' : 'Delivered to consignee') : 'Pending';
+    return '<li class="' + cls + '"><span class="dot"></span><div class="tl-l">' + s + '</div><div class="tl-s">' + sub + '</div></li>';
+  }).join('');
+  res.innerHTML = '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px"><div><p style="font-size:16px;font-weight:bold;color:#0C447C;margin-bottom:3px">' + row.id + '</p><p style="font-size:12px;color:#555">' + row.from_city + ' &#8594; ' + row.to_city + ' | ' + row.payment + '</p></div>' + sbadge(row.status) + '</div><div style="font-size:13px;display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;margin-bottom:12px;padding:10px;background:#f0f4f8;border-radius:8px"><span style="color:#555">Consignor</span><span><b>' + row.consignor + '</b></span><span style="color:#555">Consignee</span><span><b>' + row.consignee + '</b></span><span style="color:#555">Vehicle</span><span>' + (row.vehicle || '—') + '</span><span style="color:#555">Date</span><span>' + row.date + '</span></div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:bold;color:#185FA5;padding:8px 12px;background:#E6F1FB;border-radius:7px;margin-bottom:4px"><span>Grand Total</span><span>' + fmt(ch.grand || 0) + '</span></div><ul class="tl">' + tl + '</ul></div>';
+}
+
+// ═══════════════════════════════════
+//  CUSTOMERS
+// ═══════════════════════════════════
+async function loadCusts() {
+  var r = await db('SELECT * FROM customers ORDER BY name');
+  if (r) { custs = r.rows; renderCustTbl(); refreshDL(); }
+}
+
+async function saveCust() {
+  var name = gi('cu-name').trim(); if (!name) { toast('Enter customer name', false); return; }
+  var r = await db('INSERT INTO customers(id,name,phone,gst_no,address,customer_type) VALUES(?,?,?,?,?,?)', [uid(), name, gi('cu-ph'), gi('cu-gst'), gi('cu-addr'), gi('cu-type')]);
+  if (r !== null) { toast('Customer added!'); clrCust(); loadCusts(); } else toast('Failed', false);
+}
+
+function clrCust() { ['cu-name', 'cu-ph', 'cu-gst', 'cu-addr'].forEach(function(id) { document.getElementById(id).value = ''; }); }
+
+async function delCust(id) {
+  if (!confirm('Delete this customer?')) return;
+  await db('DELETE FROM customers WHERE id=?', [id]); loadCusts();
+}
+
+function renderCustTbl() {
+  var w = document.getElementById('cust-tbl'); document.getElementById('cust-count').textContent = custs.length;
+  if (!custs.length) { w.innerHTML = '<div class="empty">No customers yet.</div>'; return; }
+  var rows = custs.map(function(c) { return '<tr><td><b>' + c.name + '</b></td><td>' + (c.phone || '—') + '</td><td style="font-family:monospace;font-size:12px">' + (c.gst_no || '—') + '</td><td>' + (c.address || '—') + '</td><td><span class="badge bb">' + c.customer_type + '</span></td><td><button class="btn btn-red btn-sm" onclick="delCust(\'' + c.id + '\')">Delete</button></td></tr>'; }).join('');
+  w.innerHTML = '<table><thead><tr><th>Name</th><th>Phone</th><th>GST No.</th><th>Address</th><th>Type</th><th>Action</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ═══════════════════════════════════
+//  BRANCHES
+// ═══════════════════════════════════
+async function loadBranches() {
+  var r = await db('SELECT * FROM branches ORDER BY name');
+  if (r) { branches = r.rows; renderBranchTbl(); refreshDL(); }
+}
+
+async function saveBranch() {
+  var name = gi('br-name').trim(); if (!name) { toast('Enter branch name', false); return; }
+  var r = await db('INSERT INTO branches(id,name,city,state,contact_person,phone) VALUES(?,?,?,?,?,?)', [uid(), name, gi('br-city'), gi('br-state'), gi('br-cp'), gi('br-ph')]);
+  if (r !== null) { toast('Branch added!'); clrBranch(); loadBranches(); } else toast('Failed', false);
+}
+
+function clrBranch() { ['br-name', 'br-city', 'br-state', 'br-cp', 'br-ph'].forEach(function(id) { document.getElementById(id).value = ''; }); }
+
+async function delBranch(id) {
+  if (!confirm('Delete this branch?')) return;
+  await db('DELETE FROM branches WHERE id=?', [id]); loadBranches();
+}
+
+function renderBranchTbl() {
+  var w = document.getElementById('branch-tbl'); document.getElementById('branch-count').textContent = branches.length;
+  if (!branches.length) { w.innerHTML = '<div class="empty">No branches yet.</div>'; return; }
+  var rows = branches.map(function(b) { return '<tr><td><b>' + b.name + '</b></td><td>' + (b.city || '—') + '</td><td>' + (b.state || '—') + '</td><td>' + (b.contact_person || '—') + '</td><td>' + (b.phone || '—') + '</td><td><button class="btn btn-red btn-sm" onclick="delBranch(\'' + b.id + '\')">Delete</button></td></tr>'; }).join('');
+  w.innerHTML = '<table><thead><tr><th>Branch Name</th><th>City</th><th>State</th><th>Contact</th><th>Phone</th><th>Action</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ═══════════════════════════════════
+//  PACKAGE TYPES
+// ═══════════════════════════════════
+async function loadPkgTypes() {
+  var r = await db('SELECT * FROM pkg_types ORDER BY name');
+  if (r) { pkgtypes = r.rows; renderPkgTbl(); refreshDL(); }
+}
+
+async function savePkg() {
+  var name = gi('pt-name').trim(); if (!name) { toast('Enter package type name', false); return; }
+  var r = await db('INSERT INTO pkg_types(id,name,code,description) VALUES(?,?,?,?)', [uid(), name, gi('pt-code'), gi('pt-desc')]);
+  if (r !== null) { toast('Package type added!'); clrPkg(); loadPkgTypes(); } else toast('Failed', false);
+}
+
+function clrPkg() { ['pt-name', 'pt-code', 'pt-desc'].forEach(function(id) { document.getElementById(id).value = ''; }); }
+
+async function delPkg(id) {
+  if (!confirm('Delete?')) return;
+  await db('DELETE FROM pkg_types WHERE id=?', [id]); loadPkgTypes();
+}
+
+function renderPkgTbl() {
+  var w = document.getElementById('pkg-tbl'); document.getElementById('pkg-count').textContent = pkgtypes.length;
+  if (!pkgtypes.length) { w.innerHTML = '<div class="empty">No package types yet.</div>'; return; }
+  var rows = pkgtypes.map(function(p) { return '<tr><td><b>' + p.name + '</b></td><td><span class="badge bb">' + (p.code || '—') + '</span></td><td>' + (p.description || '—') + '</td><td><button class="btn btn-red btn-sm" onclick="delPkg(\'' + p.id + '\')">Delete</button></td></tr>'; }).join('');
+  w.innerHTML = '<table><thead><tr><th>Type Name</th><th>Code</th><th>Description</th><th>Action</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+async function loadAllMasters() {
+  await Promise.all([loadCusts(), loadBranches(), loadPkgTypes()]);
+  loadDktSettingsUI();
+}
+
+function refreshDL() {
+  document.getElementById('branch-list').innerHTML = branches.map(function(b) { return '<option value="' + b.name + '">'; }).join('');
+  document.getElementById('cust-list').innerHTML = custs.map(function(c) { return '<option value="' + c.name + '">'; }).join('');
+  document.getElementById('pkg-list').innerHTML = pkgtypes.map(function(p) { return '<option value="' + p.name + '">'; }).join('');
+}
+
+// ═══════════════════════════════════
+//  REPORTS
+// ═══════════════════════════════════
+async function runReport() {
+  var month = gi('rpt-month'), sf = gi('rpt-status'), pf = gi('rpt-pay');
+  if (!month) { toast('Select a month', false); return; }
+  var sql = 'SELECT * FROM dockets WHERE date LIKE ?', args = [month + '%'];
+  if (sf) { sql += ' AND status=?'; args.push(sf); }
+  if (pf) { sql += ' AND payment=?'; args.push(pf); }
+  sql += ' ORDER BY date';
+  var r = await db(sql, args);
+  if (!r) { toast('Failed to load report', false); return; }
+  var data = r.rows.map(function(row) { var ch = {}; try { ch = JSON.parse(row.charges || '{}'); } catch (e) {} row.ch = ch; return row; });
+  var ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var parts = month.split('-'), mName = ms[parseInt(parts[1]) - 1] + ' ' + parts[0];
+  document.getElementById('rpt-title').textContent = 'Docket Register — ' + mName + (sf ? ' | ' + sf : '') + (pf ? ' | ' + pf : '');
+  var totFr = data.reduce(function(a,d){return a+(+d.ch.fr||0);},0);
+  var totDk = data.reduce(function(a,d){return a+(+d.ch.dk||0);},0);
+  var totHa = data.reduce(function(a,d){return a+(+d.ch.ha||0);},0);
+  var totDd = data.reduce(function(a,d){return a+(+d.ch.dd||0);},0);
+  var totMi = data.reduce(function(a,d){return a+(+d.ch.mi||0);},0);
+  var totGst= data.reduce(function(a,d){return a+(+d.ch.totalGst||0);},0);
+  var totGt = data.reduce(function(a,d){return a+(+d.ch.grand||0);},0);
+  var st = document.getElementById('rpt-stats'); st.style.display = 'grid';
+  document.getElementById('rs-cnt').textContent = data.length;
+  document.getElementById('rs-fr').textContent = '\u20B9' + fmtN(totFr);
+  document.getElementById('rs-gst').textContent = '\u20B9' + fmtN(totGst);
+  document.getElementById('rs-gt').textContent = '\u20B9' + fmtN(totGt);
+  if (!data.length) { document.getElementById('rpt-tbl').innerHTML = '<div class="empty">No dockets for this period.</div>'; return; }
+  var rows = data.map(function(d) { return '<tr><td><b>' + d.id + '</b></td><td>' + d.date + '</td><td>' + d.from_city + '&#8594;' + d.to_city + '</td><td>' + d.consignor + '</td><td>' + d.consignee + '</td><td>' + (d.pkg_type||'—') + '</td><td>' + d.payment + '</td><td>&#8377;'+fmtN(d.ch.fr||0)+'</td><td>&#8377;'+fmtN(d.ch.dk||0)+'</td><td>&#8377;'+fmtN(d.ch.ha||0)+'</td><td>&#8377;'+fmtN(d.ch.dd||0)+'</td><td>&#8377;'+fmtN(d.ch.mi||0)+'</td><td>&#8377;'+fmtN(d.ch.totalGst||0)+'</td><td><b>&#8377;'+fmtN(d.ch.grand||0)+'</b></td><td>'+sbadge(d.status)+'</td></tr>'; }).join('');
+  var totRow = '<tr style="background:#E6F1FB;font-weight:bold"><td colspan="7" style="text-align:right;color:#185FA5">TOTALS &#8594;</td><td>&#8377;'+fmtN(totFr)+'</td><td>&#8377;'+fmtN(totDk)+'</td><td>&#8377;'+fmtN(totHa)+'</td><td>&#8377;'+fmtN(totDd)+'</td><td>&#8377;'+fmtN(totMi)+'</td><td>&#8377;'+fmtN(totGst)+'</td><td>&#8377;'+fmtN(totGt)+'</td><td></td></tr>';
+  document.getElementById('rpt-tbl').innerHTML = '<table><thead><tr><th>DKT No.</th><th>Date</th><th>Route</th><th>Consignor</th><th>Consignee</th><th>Pkg</th><th>Pay</th><th>Freight</th><th>DKT</th><th>Handling</th><th>Door Dly</th><th>Misc</th><th>GST</th><th>Grand</th><th>Status</th></tr></thead><tbody>' + rows + totRow + '</tbody></table>';
+}
+
+function printReport() {
+  var tbl = document.getElementById('rpt-tbl').innerHTML, title = document.getElementById('rpt-title').textContent;
+  var w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>' + title + '</title><style>body{font-family:Arial;padding:16px;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:4px 6px;white-space:nowrap}th{background:#E6F1FB;color:#0C447C}h2{color:#185FA5}</style></head><body><h2>' + title + '</h2>' + tbl + '</body></html>');
+  w.document.close(); w.print();
+}
+
+// ═══════════════════════════════════
+//  INIT
+// ═══════════════════════════════════
+async function init() {
+  document.getElementById('ov-msg').textContent = 'Connecting to Turso Cloud...';
+  var test = await db('SELECT COUNT(*) as cnt FROM dockets');
+  if (test !== null) {
+    setDbOk('Cloud DB Connected ✓');
+    await loadDktSettings();
+    await Promise.all([loadDkts(), loadCusts(), loadBranches(), loadPkgTypes()]);
+    refreshThcDd();
+    document.getElementById('rpt-month').value = new Date().toISOString().slice(0, 7);
+    initDktForm();
+    hideOv();
+    toast('Connected to Turso Cloud! Data loaded ✓');
+  } else {
+    setDbErr('Connection Failed');
+    document.getElementById('ov-msg').textContent = 'Cannot connect to Turso DB. Check internet connection.';
+    document.getElementById('ov').style.background = 'rgba(252,235,235,0.95)';
+    document.getElementById('ov-msg').style.color = '#E24B4A';
+    setTimeout(hideOv, 5000);
+    initDktForm();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
